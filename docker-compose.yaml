@@ -1,0 +1,61 @@
+services:
+  vector-db:
+    image: chromadb/chroma:latest
+    container_name: chromadb_timepledge
+    networks:
+      - timepledge_network
+    ports:
+      - "8000:8000"
+    volumes:
+      - chromadb_data:/data
+
+  backend:
+    image: chatbot_backend_image
+    build:
+      context: ./chatbot_backend
+      dockerfile: Dockerfile
+    container_name: chatbot_backend
+    networks:
+      - timepledge_network
+    depends_on:
+      - vector-db
+
+  backend2:
+    image: chatbot_backend_straight
+    build:
+      context: ./chatbot_backend
+      dockerfile: Dockerfile copy
+    container_name: chatbot_backend_straight
+    networks:
+      - timepledge_network
+    depends_on:
+      - vector-db
+
+  frontend:
+    image: chatbot_frontend_image
+    build:
+      context: ./chatbot_frontend
+      dockerfile: Dockerfile
+    container_name: chatbot_frontend
+    networks:
+      - timepledge_network
+    depends_on:
+      - backend
+
+  frontend2:
+    image: chatbot_frontend_straight
+    build:
+      context: ./chatbot_frontend
+      dockerfile: Dockerfile copy
+    container_name: chatbot_frontend_straight
+    networks:
+      - timepledge_network
+    depends_on:
+      - backend
+networks:
+  timepledge_network:
+    name: timepledge_network
+
+volumes:
+  chromadb_data:
+    name: chromadb_data
