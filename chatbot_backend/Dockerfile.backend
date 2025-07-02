@@ -1,0 +1,20 @@
+FROM python:3.13-slim AS builder
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+WORKDIR /backend_container
+RUN apt update && apt install -y git
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project
+COPY . /backend_container
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked
+
+FROM python:3.13-slim AS final
+WORKDIR /backend_container
+COPY --from=builder /bin/ /bin/
+COPY --from=builder /backend_container/.venv /backend_container/.venv
+COPY --from=builder /backend_container/app.py /backend_container/app.py
+COPY --from=builder /backend_container/chroma.py /backend_container/chroma.py
+ENV PATH="/usr/local/bin:$PATH"
+CMD ["uv", "run", "python", "app.py"]

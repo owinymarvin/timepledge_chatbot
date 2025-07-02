@@ -1,8 +1,6 @@
-# timepledge_chatbot
-
 # Docker compose yaml
 
-1. various builds to compare multi-stage and single stage builds of docker.
+1. various builds to compare multi-stage and single stage builds of docker (image size).
 2. names images and volumes and networks created for easy maintenance.
 
 To setup the docker images/containers/volumes
