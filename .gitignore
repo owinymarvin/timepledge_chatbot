@@ -208,5 +208,3 @@ __marimo__/
 
 inspect.txt
 /.vscode
-/chromadb_data/
-./chromadb_data

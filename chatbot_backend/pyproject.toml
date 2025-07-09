@@ -1,11 +1,18 @@
 [project]
-name = "chatbot-backend"
+name = "localfirst"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "chromadb>=1.0.13",
-    "fastapi[standard]>=0.115.14",
-    "requests>=2.32.4",
+    "chromadb>=1.0.15",
+    "docling>=2.40.0",
+    "dotenv>=0.9.9",
+    "fastapi[standard]>=0.116.0",
+    "langchain>=0.3.26",
+    "langchain-docling>=1.0.0",
+    "langchain-groq>=0.3.5",
+    "langchain-text-splitters>=0.3.8",
+    "tqdm>=4.67.1",
+    "uuid>=1.30",
 ]

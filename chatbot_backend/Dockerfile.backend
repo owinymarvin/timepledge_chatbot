@@ -14,7 +14,9 @@ FROM python:3.13-slim AS final
 WORKDIR /backend_container
 COPY --from=builder /bin/ /bin/
 COPY --from=builder /backend_container/.venv /backend_container/.venv
+COPY --from=builder /backend_container/documents/ /backend_container/documents/
+COPY --from=builder /backend_container/src/ /backend_container/src/
 COPY --from=builder /backend_container/app.py /backend_container/app.py
-COPY --from=builder /backend_container/chroma.py /backend_container/chroma.py
+
 ENV PATH="/usr/local/bin:$PATH"
-CMD ["uv", "run", "python", "app.py"]
+CMD ["uv", "run", "fastapi","run","app.py"]

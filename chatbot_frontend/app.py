@@ -1,41 +1,81 @@
 import streamlit as st
 import requests
-import time
+import uuid
+import os
 
+BACKEND_URL = os.getenv("BACKEND_URL", "http://backend:8081")
 
+st.set_page_config(layout="wide")
 st.title("_DMARV_ :blue[LLM Chatbot] :sunglasses:")
-st.header("Add docs to the vector store")
-st.subheader("Add documents to the vector store to query them later", divider="red")
 
-with st.sidebar:
-    messages = st.container(height=300)
-    if prompt := st.chat_input("Say something"):
-        messages.chat_message("user").write(prompt)
-        messages.chat_message("assistant").write(f"Echo: {prompt}")
+if "user_id" not in st.session_state:
+    st.session_state.user_id = str(uuid.uuid4())
 
+if "chat_id" not in st.session_state:
+    st.session_state.chat_id = None
 
-prompt = st.chat_input(
-    "Add a document to embed and store in the vector database",
-    accept_file="multiple",
-    file_type=["csv", "pdf", "docx", "txt", "md"],
-    key="add_doc_prompt",
-)
-if prompt and prompt.text:
-    st.markdown(prompt.text)
-if prompt and prompt["files"]:
-    st.image(prompt["files"][0])
+# Navigation
+selected_tab = st.sidebar.radio("Navigation", ["Chat", "Upload Documents"])
 
+# -------- Chat Tab --------
+if selected_tab == "Chat":
+    st.subheader("Chat with your assistant")
 
+    # List previous chat sessions
+    chat_ids = requests.get(f"{BACKEND_URL}/api/user/{st.session_state.user_id}/chats").json()
 
-with st.status("Downloading data...", expanded=True) as status:
-    st.write("Searching for data...")
-    time.sleep(2)
-    st.write("Found URL.")
-    time.sleep(1)
-    st.write("Downloading data...")
-    time.sleep(1)
-    status.update(
-        label="Download complete!", state="complete", expanded=False
-    )
+    with st.sidebar:
+        st.markdown("### 💬 Chat History")
+        for cid in chat_ids:
+            if st.button(f"Resume: {cid[:8]}"):
+                st.session_state.chat_id = cid
 
-st.button("Rerun")
+    # Display history if exists
+    if st.session_state.chat_id:
+        messages = requests.get(f"{BACKEND_URL}/api/history/{st.session_state.user_id}/{st.session_state.chat_id}").json()
+        for msg in messages:
+            if msg["role"] == "human":
+                with st.chat_message("user"):
+                    st.markdown(msg["message"])
+            else:
+                with st.chat_message("assistant"):
+                    st.markdown(msg["message"])
+
+    # Input prompt
+    if prompt := st.chat_input("Ask a question..."):
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        response = requests.post(
+            f"{BACKEND_URL}/api/chat",
+            json={
+                "user_id": st.session_state.user_id,
+                "chat_id": st.session_state.chat_id,
+                "question": prompt
+            }
+        ).json()
+
+        st.session_state.chat_id = response["chat_id"]
+
+        with st.chat_message("assistant"):
+            st.markdown(response["answer"])
+
+# -------- Upload Tab --------
+elif selected_tab == "Upload Documents":
+    st.subheader("📄 Upload PDF Documents")
+    uploaded_files = st.file_uploader("Upload your PDFs", type=["pdf"], accept_multiple_files=True)
+
+    if st.button("Upload") and uploaded_files:
+        with st.spinner("Uploading files to backend..."):
+            files = [("files", (f.name, f, "application/pdf")) for f in uploaded_files]
+            try:
+                res = requests.post(f"{BACKEND_URL}/api/upload", files=files)
+                if res.status_code == 200:
+                    result = res.json()
+                    st.success("Upload complete!")
+                    for status in result["results"]:
+                        st.write(f"{status['filename']}: {status['message']}")
+                else:
+                    st.error(f"Failed: {res.text}")
+            except Exception as e:
+                st.error(f"Error: {e}")

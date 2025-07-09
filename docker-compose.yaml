@@ -2,15 +2,18 @@ services:
   vector-db:
     image: chromadb/chroma
     container_name: chromadb_container
-    environment:
-      - ANONYMIZED_TELEMETRY=False
     networks:
       - timepledge_network
     ports:
-      - "8000:8000"
+      - "8080:8000"
     volumes:
       - chromadb_data:/data # Production on server
       - ./chromadb_data:/data # Dev on machine (remove for production)
+    deploy:
+      resources:
+        limits:
+          cpus: "6"
+          memory: 16GB
 
   backend:
     image: backend_image
@@ -18,10 +21,19 @@ services:
       context: ./chatbot_backend
       dockerfile: Dockerfile.backend
     container_name: backend_container
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
     networks:
       - timepledge_network
     depends_on:
       - vector-db
+    expose:
+      - 8081
+    deploy:
+      resources:
+        limits:
+          cpus: "6"
+          memory: 16G
 
   frontend:
     image: frontend_image
@@ -33,6 +45,13 @@ services:
       - timepledge_network
     depends_on:
       - backend
+    ports:
+      - "8082:8501"
+    deploy:
+      resources:
+        limits:
+          cpus: "6"
+          memory: 16G
 
 networks:
   timepledge_network:
