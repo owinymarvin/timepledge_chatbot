@@ -27,8 +27,10 @@ services:
       - timepledge_network
     depends_on:
       - vector-db
-    expose:
-      - 8081
+    ports:
+      - 8081:8000
+    volumes:
+      - ./chatbot_backend/.cache/:/root/.cache/
     deploy:
       resources:
         limits:

@@ -100,7 +100,7 @@ async def chat(request: SchemaAskRequest):
 @app.post("/api/chat/stream")
 async def stream_chat(request: SchemaAskRequest):
     print(f"🌊 Streaming chat for user {request.user_id}, chat {request.chat_id}")
-    stream = await stream_response(
+    stream = stream_response(
         user_id=request.user_id,
         chat_id=request.chat_id,
         question=request.question
