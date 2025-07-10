@@ -1,4 +1,12 @@
-# Constitution Chatbot.
+# Uganda Constitution Chatbot.
+
+it answers various questions based on data from the constitution. To save time, the chroma_db was added to the commit. But feel free to delete and watch it run again from scratch.
+
+Also users should add the "".env"" file with the Groq Key. (or go to groq to obtain your API key now)
+
+```bash
+    GROQ_API_KEY=gsk_.............
+```
 
 1. various builds to compare multi-stage and single stage builds of docker (image size).
 2. names images and volumes and networks created for easy maintenance.
